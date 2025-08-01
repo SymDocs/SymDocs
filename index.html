@@ -177,14 +177,14 @@
 
   <script>
     // ** ATUALIZE AQUI COM SEU CÓDIGO DE CONFIGURAÇÃO DO FIREBASE **
-const firebaseConfig = {
-  apiKey: "AIzaSyCY4J6uSl6ZTl2xLpWMC-B6cZxg4INkRf4",
-  authDomain: "symdocs-39b30.firebaseapp.com",
-  projectId: "symdocs-39b30",
-  storageBucket: "symdocs-39b30.firebasestorage.app",
-  messagingSenderId: "476401942667",
-  appId: "1:476401942667:web:24e7da0f385317d072548e"
-};
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID"
+    };
 
     // Inicializa o Firebase
     firebase.initializeApp(firebaseConfig);
@@ -246,20 +246,18 @@ const firebaseConfig = {
     // Monitora o estado da autenticação
     auth.onAuthStateChanged(user => {
       if (user) {
-        // Usuário logado: exibe o app e esconde o login
         document.getElementById('auth-container').style.display = 'none';
         document.getElementById('main-app').style.display = 'block';
         document.getElementById('logout-btn').addEventListener('click', fazerLogout);
         exibirProximoNumero();
       } else {
-        // Usuário não logado: esconde o app e exibe o login
         document.getElementById('auth-container').style.display = 'block';
         document.getElementById('main-app').style.display = 'none';
         document.getElementById('auth-message').textContent = "";
       }
     });
 
-    // Funções do Gerador de Comunicado (as mesmas que já tínhamos)
+    // Funções do Gerador de Comunicado
     async function exibirProximoNumero() {
       const currentYear = new Date().getFullYear();
       let lastNumero = 0;
@@ -280,97 +278,92 @@ const firebaseConfig = {
       document.getElementById('numero').value = `${proximoNumero}/${currentYear}`;
     }
 
-async function gerarPDF() {
-  const currentYear = new Date().getFullYear();
-  let novoNumero;
+    async function gerarPDF() {
+      const currentYear = new Date().getFullYear();
+      let novoNumero;
 
-  try {
-    await db.runTransaction(async (transaction) => {
-      const sfDoc = await transaction.get(docRef);
-      let lastNumero = 0;
-      if (sfDoc.exists) {
-        const counterData = sfDoc.data();
-        if (counterData && counterData[currentYear]) {
-          lastNumero = counterData[currentYear];
-        }
-      } else {
-        transaction.set(docRef, { [currentYear]: 0 });
+      try {
+        await db.runTransaction(async (transaction) => {
+          const sfDoc = await transaction.get(docRef);
+          let lastNumero = 0;
+          if (sfDoc.exists) {
+            const counterData = sfDoc.data();
+            if (counterData && counterData[currentYear]) {
+              lastNumero = counterData[currentYear];
+            }
+          } else {
+            transaction.set(docRef, { [currentYear]: 0 });
+          }
+          
+          novoNumero = parseInt(lastNumero) + 1;
+          transaction.update(docRef, { [currentYear]: novoNumero });
+        });
+      } catch (e) {
+        console.error("Falha na transação!", e);
+        alert("Erro ao gerar o número da CI. Por favor, tente novamente.");
+        return;
       }
+
+      const orgao = document.getElementById('orgao').value;
+      const setor = document.getElementById('setor').value;
+      const numero = `${novoNumero}/${currentYear}`;
+      const destino = document.getElementById('destino').value;
+      const data = document.getElementById('data').value;
+      const assunto = document.getElementById('assunto').value;
+      const textoHTML = editorInstance.getData();
+      const assinatura1_nome = document.getElementById('assinatura1_nome').value;
+      const assinatura1_cargo = document.getElementById('assinatura1_cargo').value;
+      const assinatura2_nome = document.getElementById('assinatura2_nome').value;
+      const assinatura2_cargo = document.getElementById('assinatura2_cargo').value;
+
+      const preview = document.getElementById('preview');
+      const dataObjeto = new Date(data + 'T00:00:00');
+      const dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
+
+      preview.innerHTML = `
+        <div style="font-family: Arial; font-size: 12px; padding: 20px; max-width: 800px; margin: auto;">
+          <div style="text-align: center; margin-bottom: 20px;">
+              <h2 style="margin: 0;">COMUNICAÇÃO INTERNA</h2>
+              <h3 style="margin: 5px 0 10px 0;">CI Nº ${numero}</h3>
+          </div>
+          <p style="margin-bottom: 5px;"><strong>Origem:</strong> ${setor}</p>
+          <p style="margin-bottom: 5px;"><strong>Destino:</strong> ${destino}</p>
+          <p style="margin-bottom: 5px;"><strong>Assunto:</strong> ${assunto}</p>
+          <p style="margin-bottom: 20px;"><strong>Data:</strong> ${dataFormatada}</p>
+          <div style="margin-bottom: 20px;">
+            ${textoHTML}
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-top: 50px;">
+              <div style="text-align: center; flex: 1; padding: 0 10px;">
+                  <p style="border-top: 1px solid #000; padding-top: 5px; margin: 0;">
+                      ${assinatura1_nome}<br>
+                      ${assinatura1_cargo}
+                  </p>
+              </div>
+              <div style="flex: 1;"></div>
+              <div style="text-align: center; flex: 1; padding: 0 10px;">
+                  <p style="border-top: 1px solid #000; padding-top: 5px; margin: 0;">
+                      ${assinatura2_nome}<br>
+                      ${assinatura2_cargo}
+                  </p>
+              </div>
+          </div>
+        </div>
+      `;
+
+      preview.style.display = 'block';
+
+      html2pdf().from(preview).set({
+        margin: 10,
+        filename: `comunicado_interno_${numero}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).outputPdf('dataurlnewwindow').then(() => {
+        preview.style.display = 'none';
+      });
       
-      novoNumero = parseInt(lastNumero) + 1;
-      transaction.update(docRef, { [currentYear]: novoNumero });
-    });
-  } catch (e) {
-    console.error("Falha na transação!", e);
-    alert("Erro ao gerar o número da CI. Por favor, tente novamente.");
-    return;
-  }
-
-  const orgao = document.getElementById('orgao').value;
-  const setor = document.getElementById('setor').value;
-  const numero = `${novoNumero}/${currentYear}`;
-  const destino = document.getElementById('destino').value;
-  const data = document.getElementById('data').value;
-  const assunto = document.getElementById('assunto').value;
-  const textoHTML = editorInstance.getData();
-  const assinatura1_nome = document.getElementById('assinatura1_nome').value;
-  const assinatura1_cargo = document.getElementById('assinatura1_cargo').value;
-  const assinatura2_nome = document.getElementById('assinatura2_nome').value;
-  const assinatura2_cargo = document.getElementById('assinatura2_cargo').value;
-
-  const preview = document.getElementById('preview');
-
-  // Formata a data para dd/mm/aaaa
-  const dataObjeto = new Date(data + 'T00:00:00'); // Garante que a data é tratada corretamente
-  const dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
-
-  preview.innerHTML = `
-    <div style="font-family: Arial; font-size: 12px; padding: 20px; max-width: 800px; margin: auto;">
-      <div style="text-align: center; margin-bottom: 20px;">
-          <h2 style="margin: 0;">COMUNICAÇÃO INTERNA</h2>
-          <h3 style="margin: 5px 0 10px 0;">CI Nº ${numero}</h3>
-      </div>
-      <p style="margin-bottom: 5px;"><strong>Origem:</strong> ${setor}</p>
-      <p style="margin-bottom: 5px;"><strong>Destino:</strong> ${destino}</p>
-      <p style="margin-bottom: 5px;"><strong>Assunto:</strong> ${assunto}</p>
-      <p style="margin-bottom: 20px;"><strong>Data:</strong> ${dataFormatada}</p>
-      <div style="margin-bottom: 20px;">
-        ${textoHTML}
-      </div>
-      <div style="display: flex; justify-content: space-between; margin-top: 50px;">
-          <div style="text-align: center; flex: 1; padding: 0 10px;">
-              <p style="border-top: 1px solid #000; padding-top: 5px; margin: 0;">
-                  ${assinatura1_nome}<br>
-                  ${assinatura1_cargo}
-              </p>
-          </div>
-          <div style="flex: 1;"></div>
-          <div style="text-align: center; flex: 1; padding: 0 10px;">
-              <p style="border-top: 1px solid #000; padding-top: 5px; margin: 0;">
-                  ${assinatura2_nome}<br>
-                  ${assinatura2_cargo}
-              </p>
-          </div>
-      </div>
-    </div>
-  `;
-
-  // Faz a div de preview visível antes de gerar o PDF
-  preview.style.display = 'block';
-
-  // Usa a promise para garantir que a div seja escondida apenas depois que o PDF for gerado
-  html2pdf().from(preview).set({
-    margin: 10,
-    filename: `comunicado_interno_${numero}.pdf`,
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }).outputPdf('dataurlnewwindow').then(() => {
-    // Esconde a div de preview novamente
-    preview.style.display = 'none';
-  });
-  
-  exibirProximoNumero();
-}
+      exibirProximoNumero();
+    }
   </script>
 </body>
 </html>
