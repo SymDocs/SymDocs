@@ -8,6 +8,7 @@
   <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore-compat.js"></script>
 
   <style>
@@ -19,7 +20,7 @@
       display: flex;
       justify-content: center;
     }
-    .container {
+    .container, #auth-container {
       background-color: #fff;
       padding: 20px;
       border-radius: 8px;
@@ -39,7 +40,7 @@
       display: block;
       margin-bottom: 5px;
     }
-    input[type="text"], input[type="date"], select {
+    input[type="text"], input[type="date"], select, input[type="email"], input[type="password"] {
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
@@ -82,10 +83,22 @@
       padding: 15px;
       border-radius: 4px;
     }
+    #logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 8px 12px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="main-app" style="display: none;">
+    <button id="logout-btn">Sair</button>
     <h1>Gerador de Comunicado Interno</h1>
 
     <div class="form-group">
@@ -147,20 +160,35 @@
     <div id="preview"></div>
   </div>
 
+  <div class="container" id="auth-container">
+    <h1>Login</h1>
+    <div class="form-group">
+      <label for="auth-email">E-mail</label>
+      <input type="email" id="auth-email">
+    </div>
+    <div class="form-group">
+      <label for="auth-password">Senha</label>
+      <input type="password" id="auth-password">
+    </div>
+    <button class="btn" onclick="fazerLogin()">Entrar</button>
+    <button class="btn" onclick="registrarUsuario()" style="margin-top: 10px;">Registrar (Primeiro Acesso)</button>
+    <p id="auth-message" style="color: red; text-align: center; margin-top: 10px;"></p>
+  </div>
+
   <script>
     // ** ATUALIZE AQUI COM SEU CÓDIGO DE CONFIGURAÇÃO DO FIREBASE **
-    // Você pode encontrar este código nas configurações do seu projeto no console do Firebase.
     const firebaseConfig = {
-      apiKey: "AIzaSyCY4J6uSl6ZTl2xLpWMC-B6cZxg4INkRf4",
-      authDomain: "symdocs-39b30.firebaseapp.com",
-      projectId: "symdocs-39b30",
-      storageBucket: "symdocs-39b30.firebasestorage.app",
-      messagingSenderId: "476401942667",
-      appId: "1:476401942667:web:24e7da0f385317d072548e"
+      apiKey: "SUA_API_KEY",
+      authDomain: "SEU_AUTH_DOMAIN",
+      projectId: "SEU_PROJECT_ID",
+      storageBucket: "SEU_STORAGE_BUCKET",
+      messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+      appId: "SEU_APP_ID"
     };
 
     // Inicializa o Firebase
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
     const docRef = db.collection("counters").doc("ci_counter");
 
@@ -184,6 +212,54 @@
       console.error(error);
     });
 
+    // Funções de Autenticação
+    function mostrarMensagem(mensagem) {
+      document.getElementById('auth-message').textContent = mensagem;
+    }
+
+    async function registrarUsuario() {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        mostrarMensagem("Usuário registrado com sucesso!");
+      } catch (error) {
+        mostrarMensagem("Erro ao registrar: " + error.message);
+      }
+    }
+
+    async function fazerLogin() {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+        mostrarMensagem("Login realizado com sucesso!");
+      } catch (error) {
+        mostrarMensagem("Erro no login: " + error.message);
+      }
+    }
+
+    function fazerLogout() {
+      auth.signOut();
+    }
+
+    // Monitora o estado da autenticação
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        // Usuário logado: exibe o app e esconde o login
+        document.getElementById('auth-container').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        document.getElementById('logout-btn').addEventListener('click', fazerLogout);
+        exibirProximoNumero();
+      } else {
+        // Usuário não logado: esconde o app e exibe o login
+        document.getElementById('auth-container').style.display = 'block';
+        document.getElementById('main-app').style.display = 'none';
+        document.getElementById('auth-message').textContent = "";
+      }
+    });
+
+    // Funções do Gerador de Comunicado (as mesmas que já tínhamos)
     async function exibirProximoNumero() {
       const currentYear = new Date().getFullYear();
       let lastNumero = 0;
@@ -204,8 +280,6 @@
       document.getElementById('numero').value = `${proximoNumero}/${currentYear}`;
     }
 
-    window.onload = exibirProximoNumero;
-
     async function gerarPDF() {
       // 1. Incrementa o contador no Firestore de forma segura
       const currentYear = new Date().getFullYear();
@@ -221,7 +295,6 @@
               lastNumero = counterData[currentYear];
             }
           } else {
-            // Se o documento não existe, cria ele
             transaction.set(docRef, { [currentYear]: 0 });
           }
           
@@ -237,7 +310,7 @@
       // 2. Continua com a geração do PDF
       const orgao = document.getElementById('orgao').value;
       const setor = document.getElementById('setor').value;
-      const numero = `${novoNumero}/${currentYear}`; // Usa o novo número gerado
+      const numero = `${novoNumero}/${currentYear}`;
       const destino = document.getElementById('destino').value;
       const data = document.getElementById('data').value;
       const assunto = document.getElementById('assunto').value;
@@ -271,7 +344,6 @@
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       }).outputPdf('dataurlnewwindow');
       
-      // Opcional: exibe o próximo número após a geração bem-sucedida
       exibirProximoNumero();
     }
   </script>
