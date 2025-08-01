@@ -278,92 +278,106 @@
       document.getElementById('numero').value = `${proximoNumero}/${currentYear}`;
     }
 
-    async function gerarPDF() {
-      const currentYear = new Date().getFullYear();
-      let novoNumero;
+async function gerarPDF() {
+  const currentYear = new Date().getFullYear();
+  let novoNumero;
 
-      try {
-        await db.runTransaction(async (transaction) => {
-          const sfDoc = await transaction.get(docRef);
-          let lastNumero = 0;
-          if (sfDoc.exists) {
-            const counterData = sfDoc.data();
-            if (counterData && counterData[currentYear]) {
-              lastNumero = counterData[currentYear];
-            }
-          } else {
-            transaction.set(docRef, { [currentYear]: 0 });
-          }
-          
-          novoNumero = parseInt(lastNumero) + 1;
-          transaction.update(docRef, { [currentYear]: novoNumero });
-        });
-      } catch (e) {
-        console.error("Falha na transação!", e);
-        alert("Erro ao gerar o número da CI. Por favor, tente novamente.");
-        return;
+  try {
+    await db.runTransaction(async (transaction) => {
+      const sfDoc = await transaction.get(docRef);
+      let lastNumero = 0;
+      if (sfDoc.exists) {
+        const counterData = sfDoc.data();
+        if (counterData && counterData[currentYear]) {
+          lastNumero = counterData[currentYear];
+        }
+      } else {
+        transaction.set(docRef, { [currentYear]: 0 });
       }
-
-      const orgao = document.getElementById('orgao').value;
-      const setor = document.getElementById('setor').value;
-      const numero = `${novoNumero}/${currentYear}`;
-      const destino = document.getElementById('destino').value;
-      const data = document.getElementById('data').value;
-      const assunto = document.getElementById('assunto').value;
-      const textoHTML = editorInstance.getData();
-      const assinatura1_nome = document.getElementById('assinatura1_nome').value;
-      const assinatura1_cargo = document.getElementById('assinatura1_cargo').value;
-      const assinatura2_nome = document.getElementById('assinatura2_nome').value;
-      const assinatura2_cargo = document.getElementById('assinatura2_cargo').value;
-
-      const preview = document.getElementById('preview');
-      const dataObjeto = new Date(data + 'T00:00:00');
-      const dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
-
-      preview.innerHTML = `
-        <div style="font-family: Arial; font-size: 12px; padding: 20px; max-width: 800px; margin: auto;">
-          <div style="text-align: center; margin-bottom: 20px;">
-              <h2 style="margin: 0;">COMUNICAÇÃO INTERNA</h2>
-              <h3 style="margin: 5px 0 10px 0;">CI Nº ${numero}</h3>
-          </div>
-          <p style="margin-bottom: 5px;"><strong>Origem:</strong> ${setor}</p>
-          <p style="margin-bottom: 5px;"><strong>Destino:</strong> ${destino}</p>
-          <p style="margin-bottom: 5px;"><strong>Assunto:</strong> ${assunto}</p>
-          <p style="margin-bottom: 20px;"><strong>Data:</strong> ${dataFormatada}</p>
-          <div style="margin-bottom: 20px;">
-            ${textoHTML}
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-top: 50px;">
-              <div style="text-align: center; flex: 1; padding: 0 10px;">
-                  <p style="border-top: 1px solid #000; padding-top: 5px; margin: 0;">
-                      ${assinatura1_nome}<br>
-                      ${assinatura1_cargo}
-                  </p>
-              </div>
-              <div style="flex: 1;"></div>
-              <div style="text-align: center; flex: 1; padding: 0 10px;">
-                  <p style="border-top: 1px solid #000; padding-top: 5px; margin: 0;">
-                      ${assinatura2_nome}<br>
-                      ${assinatura2_cargo}
-                  </p>
-              </div>
-          </div>
-        </div>
-      `;
-
-      preview.style.display = 'block';
-
-      html2pdf().from(preview).set({
-        margin: 10,
-        filename: `comunicado_interno_${numero}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).outputPdf('dataurlnewwindow').then(() => {
-        preview.style.display = 'none';
-      });
       
-      exibirProximoNumero();
-    }
+      novoNumero = parseInt(lastNumero) + 1;
+      transaction.update(docRef, { [currentYear]: novoNumero });
+    });
+  } catch (e) {
+    console.error("Falha na transação!", e);
+    alert("Erro ao gerar o número da CI. Por favor, tente novamente.");
+    return;
+  }
+
+  const orgao = document.getElementById('orgao').value;
+  const setor = document.getElementById('setor').value;
+  const numero = `${novoNumero}/${currentYear}`;
+  const destino = document.getElementById('destino').value;
+  const data = document.getElementById('data').value;
+  const assunto = document.getElementById('assunto').value;
+  const textoHTML = editorInstance.getData();
+  const assinatura1_nome = document.getElementById('assinatura1_nome').value;
+  const assinatura1_cargo = document.getElementById('assinatura1_cargo').value;
+  const assinatura2_nome = document.getElementById('assinatura2_nome').value;
+  const assinatura2_cargo = document.getElementById('assinatura2_cargo').value;
+
+  const preview = document.getElementById('preview');
+  const dataObjeto = new Date(data + 'T00:00:00');
+  const dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
+
+  preview.innerHTML = `
+    <div style="font-family: Arial; font-size: 12px; padding: 20px; margin: auto;">
+      <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px;">
+          <img src="URL_DO_SEU_LOGO_AQUI" style="height: 60px; margin-bottom: 10px;" alt="Logo do Órgão">
+          <p style="font-size: 14px; font-weight: bold; margin: 0;">${orgao}</p>
+          <p style="font-size: 14px; margin: 0;">${setor}</p>
+      </div>
+
+      <div style="text-align: center; margin-bottom: 20px;">
+          <h2 style="margin: 0; font-size: 16px;">COMUNICAÇÃO INTERNA</h2>
+          <h3 style="margin: 5px 0 0 0; font-size: 14px;">CI Nº ${numero}</h3>
+      </div>
+      
+      <div style="line-height: 1.5; margin-bottom: 20px;">
+          <p style="margin: 0;"><strong>Origem:</strong> ${setor}</p>
+          <p style="margin: 0;"><strong>Destino:</strong> ${destino}</p>
+          <p style="margin: 0;"><strong>Assunto:</strong> ${assunto}</p>
+          <p style="margin: 0;"><strong>Data:</strong> ${dataFormatada}</p>
+      </div>
+
+      <div style="line-height: 1.5; margin-bottom: 30px;">
+        ${textoHTML}
+      </div>
+
+      <div style="margin-top: 50px;">
+          <p style="margin: 0 0 40px 0; text-align: center;">Atenciosamente,</p>
+          <div style="text-align: center; margin-bottom: 40px;">
+              <div style="width: 300px; margin: auto;">
+                  <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
+                  <p style="margin: 0;">${assinatura1_nome}</p>
+                  <p style="margin: 0;">${assinatura1_cargo}</p>
+              </div>
+          </div>
+          <p style="margin: 0 0 40px 0; text-align: center;">Ciente, De acordo:</p>
+          <div style="text-align: center;">
+              <div style="width: 300px; margin: auto;">
+                  <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
+                  <p style="margin: 0;">${assinatura2_nome}</p>
+                  <p style="margin: 0;">${assinatura2_cargo}</p>
+              </div>
+          </div>
+      </div>
+    </div>
+  `;
+
+  preview.style.display = 'block';
+
+  html2pdf().from(preview).set({
+    margin: 10,
+    filename: `comunicado_interno_${numero}.pdf`,
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).outputPdf('dataurlnewwindow').then(() => {
+    preview.style.display = 'none';
+  });
+  
+  exibirProximoNumero();
+}
   </script>
 </body>
 </html>
