@@ -6,6 +6,10 @@
   <title>Gerador de Comunicado Interno</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-firestore-compat.js"></script>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -67,7 +71,6 @@
     #preview {
       display: none;
     }
-    /* Estilo para as assinaturas em duas colunas */
     .assinaturas-group {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -145,6 +148,22 @@
   </div>
 
   <script>
+    // ** ATUALIZE AQUI COM SEU CÓDIGO DE CONFIGURAÇÃO DO FIREBASE **
+    // Você pode encontrar este código nas configurações do seu projeto no console do Firebase.
+    const firebaseConfig = {
+      apiKey: "AIzaSyCY4J6uSl6ZTl2xLpWMC-B6cZxg4INkRf4",
+      authDomain: "symdocs-39b30.firebaseapp.com",
+      projectId: "symdocs-39b30",
+      storageBucket: "symdocs-39b30.firebasestorage.app",
+      messagingSenderId: "476401942667",
+      appId: "1:476401942667:web:24e7da0f385317d072548e"
+    };
+
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const docRef = db.collection("counters").doc("ci_counter");
+
     let editorInstance;
     ClassicEditor.create(document.querySelector('#editor'), {
       toolbar: [
@@ -165,18 +184,60 @@
       console.error(error);
     });
 
-    window.onload = function () {
+    async function exibirProximoNumero() {
       const currentYear = new Date().getFullYear();
-      const numeroCI = localStorage.getItem('ci_counter_' + currentYear) || 0;
-      const novoNumero = parseInt(numeroCI) + 1;
-      document.getElementById('numero').value = `${novoNumero}/${currentYear}`;
-      localStorage.setItem('ci_counter_' + currentYear, novoNumero);
+      let lastNumero = 0;
+      
+      try {
+        const docSnap = await docRef.get();
+        if (docSnap.exists) {
+          const counterData = docSnap.data();
+          if (counterData && counterData[currentYear]) {
+            lastNumero = counterData[currentYear];
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao buscar o contador:", error);
+      }
+      
+      const proximoNumero = parseInt(lastNumero) + 1;
+      document.getElementById('numero').value = `${proximoNumero}/${currentYear}`;
     }
 
-    function gerarPDF() {
+    window.onload = exibirProximoNumero;
+
+    async function gerarPDF() {
+      // 1. Incrementa o contador no Firestore de forma segura
+      const currentYear = new Date().getFullYear();
+      let novoNumero;
+      
+      try {
+        await db.runTransaction(async (transaction) => {
+          const sfDoc = await transaction.get(docRef);
+          let lastNumero = 0;
+          if (sfDoc.exists) {
+            const counterData = sfDoc.data();
+            if (counterData && counterData[currentYear]) {
+              lastNumero = counterData[currentYear];
+            }
+          } else {
+            // Se o documento não existe, cria ele
+            transaction.set(docRef, { [currentYear]: 0 });
+          }
+          
+          novoNumero = parseInt(lastNumero) + 1;
+          transaction.update(docRef, { [currentYear]: novoNumero });
+        });
+      } catch (e) {
+        console.error("Falha na transação!", e);
+        alert("Erro ao gerar o número da CI. Por favor, tente novamente.");
+        return;
+      }
+
+      // 2. Continua com a geração do PDF
       const orgao = document.getElementById('orgao').value;
       const setor = document.getElementById('setor').value;
-      const numero = document.getElementById('numero').value;
+      const numero = `${novoNumero}/${currentYear}`; // Usa o novo número gerado
       const destino = document.getElementById('destino').value;
       const data = document.getElementById('data').value;
       const assunto = document.getElementById('assunto').value;
@@ -209,6 +270,9 @@
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       }).outputPdf('dataurlnewwindow');
+      
+      // Opcional: exibe o próximo número após a geração bem-sucedida
+      exibirProximoNumero();
     }
   </script>
 </body>
