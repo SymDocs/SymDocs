@@ -188,4 +188,28 @@
 
       const preview = document.getElementById('preview');
       preview.innerHTML = `
-        <div style="font-family: Arial; font-size: 12px; padding: 20
+        <div style="font-family: Arial; font-size: 12px; padding: 20px; max-width: 800px">
+          <p><strong>${orgao}</strong></p>
+          <h2 style="text-align:center">COMUNICAÇÃO INTERNA</h2>
+          <p><strong>Origem:</strong> ${setor} - CI nº ${numero}</p>
+          <p><strong>Destino:</strong> ${destino} &nbsp;&nbsp; <strong>Data:</strong> ${data}</p>
+          <p><strong>Assunto:</strong> ${assunto}</p>
+          <p><em>Prezada Senhora Procuradora,</em></p>
+          <div>${textoHTML}</div>
+          <br><br>
+          <p><strong>Atenciosamente,</strong><br>${assinatura1_nome}<br>${assinatura1_cargo}</p>
+          <br><br>
+          <p><strong>Ciente, De acordo:</strong><br>${assinatura2_nome}<br>${assinatura2_cargo}</p>
+        </div>
+      `;
+
+      html2pdf().from(preview).set({
+        margin: 10,
+        filename: `comunicado_interno_${numero}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).outputPdf('dataurlnewwindow');
+    }
+  </script>
+</body>
+</html>
