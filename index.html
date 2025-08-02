@@ -149,7 +149,7 @@
         <option value="COAIM*(Coordenação de Análise de Imagem)">COAIM*(Coordenação de Análise de Imagem)</option>
         <option value="COCAT*(Coordenação da Central de Atendimento)">COCAT*(Coordenação da Central de Atendimento)</option>
         <option value="NRJ(NÚCLEO DE RECURSO A JARI)">NRJ(NÚCLEO DE RECURSO A JARI)</option>
-        <option value="DIAFI(Diretoria Administrativo-Financeira)">Diretoria Administrativo Financeira – DIAFI</option>
+        <option value="DIAFI(Diretoria Administrativo-Financeira)">DIAFI(Diretoria Administrativo-Financeira)</option>
         <option value="GEFIN(Gerência de Gestão Financeira)">GEFIN(Gerência de Gestão Financeira)</option>
         <option value="NUCON(Núcleo de Contabilidade)">NUCON(Núcleo de Contabilidade)</option>
         <option value="NUTES(Núcleo de Tesouraria)">NUTES(Núcleo de Tesouraria)</option>
@@ -171,14 +171,7 @@
 
     <div class="form-group">
       <label for="destino">Destino</label>
-      <input type="text" id="destino" list="opcoes-destino" placeholder="Digite ou escolha um destino">
-      <datalist id="opcoes-destino">
-        <option value="PROJUR AMC"></option>
-        <option value="SETINF AMC"></option>
-        <option value="DICON AMC"></option>
-        <option value="DIRAD AMC"></option>
-        <option value="GABIN AMC"></option>
-      </datalist>
+      <input type="text" id="destino" placeholder="Escolha um destino">
     </div>
 
     <div class="form-group">
@@ -211,6 +204,7 @@
 
     <button class="btn" onclick="gerarPDF()">Visualizar/Gerar PDF</button>
     <button class="btn" onclick="limparFormulario()" style="background-color: #6c757d; margin-top: 10px;">Limpar Formulário</button>
+
 
     <div id="preview"></div>
   </div>
@@ -261,8 +255,8 @@
       const assinatura1_nome = document.getElementById('assinatura1_nome').value.trim();
       const assinatura1_cargo = document.getElementById('assinatura1_cargo').value.trim();
       const assinatura2_nome = document.getElementById('assinatura2_nome').value.trim();
-      const assinatura2_cargo = document.getElementById('assinatura2_cargo').trim();
-
+      const assinatura2_cargo = document.getElementById('assinatura2_cargo').value.trim();
+      
       if (!setor) {
         alert('Por favor, selecione um setor.');
         return;
@@ -291,6 +285,7 @@
         alert('Por favor, preencha os campos de Assinatura.');
         return;
       }
+      // A assinatura 2 é opcional, então não é obrigatório preenchê-la para gerar o PDF.
       // --- FIM DA VALIDAÇÃO DOS CAMPOS ---
 
       const orgao = document.getElementById('orgao').value;
@@ -303,35 +298,34 @@
       if (assinatura2_nome && assinatura2_cargo) {
         assinatura2HTML = `
           <div style="text-align: center;">
-            <p style="margin: 0 0 40px 0; text-align: center;">Ciente e de Acordo:</p>
-            <div style="width: 300px; margin: auto;">
-              <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
-              <p style="margin: 0;">${assinatura2_nome}</p>
-              <p style="margin: 0;">${assinatura2_cargo}</p>
-            </div>
+              <p style="margin: 0 0 40px 0; text-align: center;">Ciente e de Acordo:</p>
+              <div style="width: 300px; margin: auto;">
+                  <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
+                  <p style="margin: 0;">${assinatura2_nome}</p>
+                  <p style="margin: 0;">${assinatura2_cargo}</p>
+              </div>
           </div>
         `;
       }
 
-      // Prepara o conteúdo HTML que será convertido para PDF
       preview.innerHTML = `
-        <div style="font-family: Arial; font-size: 12px; padding: 20px; margin: auto; max-width: 760px;">
+        <div style="font-family: Arial; font-size: 12px; padding: 20px; margin: auto;">
           <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px;">
-            <img src="URL_DO_SEU_LOGO_AQUI" style="height: 60px; margin-bottom: 10px;" alt="Logo do Órgão">
-            <p style="font-size: 14px; font-weight: bold; margin: 0;">${orgao}</p>
-            <p style="font-size: 14px; margin: 0;">${setor}</p>
+              
+              <p style="font-size: 14px; font-weight: bold; margin: 0;">${orgao}</p>
+              <p style="font-size: 14px; margin: 0;">${setor}</p>
           </div>
 
           <div style="text-align: center; margin-bottom: 20px;">
-            <h2 style="margin: 0; font-size: 16px;">COMUNICAÇÃO INTERNA</h2>
-            <h3 style="margin: 5px 0 0 0; font-size: 14px;">CI Nº ${numero}</h3>
+              <h2 style="margin: 0; font-size: 16px;">COMUNICAÇÃO INTERNA</h2>
+              <h3 style="margin: 5px 0 0 0; font-size: 14px;">CI Nº ${numero}</h3>
           </div>
-         
+          
           <div style="line-height: 1.5; margin-bottom: 20px;">
-            <p style="margin: 0;"><strong>Origem:</strong> ${setor}</p>
-            <p style="margin: 0;"><strong>Destino:</strong> ${destino}</p>
-            <p style="margin: 0;"><strong>Assunto:</strong> ${assunto}</p>
-            <p style="margin: 0;"><strong>Data:</strong> ${dataFormatada}</p>
+              <p style="margin: 0;"><strong>Origem:</strong> ${setor}</p>
+              <p style="margin: 0;"><strong>Destino:</strong> ${destino}</p>
+              <p style="margin: 0;"><strong>Assunto:</strong> ${assunto}</p>
+              <p style="margin: 0;"><strong>Data:</strong> ${dataFormatada}</p>
           </div>
 
           <div style="line-height: 1.5; margin-bottom: 30px;">
@@ -339,33 +333,28 @@
           </div>
 
           <div style="margin-top: 50px;">
-            <p style="margin: 0 0 40px 0; text-align: center;">Atenciosamente,</p>
-            <div style="text-align: center; margin-bottom: 40px;">
-              <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px; width: 300px; margin: auto;">
-              <p style="margin: 0;">${assinatura1_nome}</p>
-              <p style="margin: 0;">${assinatura1_cargo}</p>
-            </div>
-            ${assinatura2HTML}
+              <p style="margin: 0 0 40px 0; text-align: center;">Atenciosamente,</p>
+              <div style="text-align: center; margin-bottom: 40px;">
+                  <p style="margin: 0 0 40px 0; text-align: center;">Assinatura</p>
+                  <div style="width: 300px; margin: auto;">
+                      <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
+                      <p style="margin: 0;">${assinatura1_nome}</p>
+                      <p style="margin: 0;">${assinatura1_cargo}</p>
+                  </div>
+              </div>
+              ${assinatura2HTML}
           </div>
         </div>
       `;
 
       preview.style.display = 'block';
 
-      // Opções para a conversão de HTML para PDF
-      const pdfOptions = {
-        margin: [10, 10, 10, 10], // Define as margens (top, left, bottom, right) em mm
+      html2pdf().from(preview).set({
+        margin: 10,
         filename: `comunicado_interno_${numero}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true // Importante para carregar imagens de URLs externas
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-      };
-
-      html2pdf().from(preview).set(pdfOptions).save().then(() => {
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      }).outputPdf('dataurlnewwindow').then(() => {
         preview.style.display = 'none';
       });
     }
