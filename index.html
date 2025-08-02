@@ -238,8 +238,8 @@
     });
 
     function limparFormulario() {
-      document.getElementById('numero').value = '';
       document.getElementById('setor').value = '';
+      document.getElementById('numero').value = '';
       document.getElementById('destino').value = '';
       document.getElementById('data').value = '';
       document.getElementById('assunto').value = '';
@@ -251,18 +251,51 @@
     }
 
     function gerarPDF() {
-      const orgao = document.getElementById('orgao').value;
+      // --- INÍCIO DA VALIDAÇÃO DOS CAMPOS ---
       const setor = document.getElementById('setor').value;
-      const numero = document.getElementById('numero').value;
-      const destino = document.getElementById('destino').value;
-      const data = document.getElementById('data').value;
-      const assunto = document.getElementById('assunto').value;
+      const numero = document.getElementById('numero').value.trim();
+      const destino = document.getElementById('destino').value.trim();
+      const data = document.getElementById('data').value.trim();
+      const assunto = document.getElementById('assunto').value.trim();
       const textoHTML = editorInstance.getData();
-      const assinatura1_nome = document.getElementById('assinatura1_nome').value;
-      const assinatura1_cargo = document.getElementById('assinatura1_cargo').value;
-      const assinatura2_nome = document.getElementById('assinatura2_nome').value;
-      const assinatura2_cargo = document.getElementById('assinatura2_cargo').value;
+      const textoPuro = textoHTML.replace(/<[^>]*>/g, '').trim();
+      const assinatura1_nome = document.getElementById('assinatura1_nome').value.trim();
+      const assinatura1_cargo = document.getElementById('assinatura1_cargo').value.trim();
+      const assinatura2_nome = document.getElementById('assinatura2_nome').value.trim();
+      const assinatura2_cargo = document.getElementById('assinatura2_cargo').value.trim();
+      
+      if (!setor) {
+        alert('Por favor, selecione um setor.');
+        return;
+      }
+      if (!numero) {
+        alert('Por favor, preencha o número da CI.');
+        return;
+      }
+      if (!destino) {
+        alert('Por favor, preencha o destino.');
+        return;
+      }
+      if (!data) {
+        alert('Por favor, selecione uma data.');
+        return;
+      }
+      if (!assunto) {
+        alert('Por favor, preencha o assunto.');
+        return;
+      }
+      if (!textoPuro) {
+        alert('Por favor, preencha o texto do comunicado.');
+        return;
+      }
+      if (!assinatura1_nome || !assinatura1_cargo) {
+        alert('Por favor, preencha os campos da Assinatura 1.');
+        return;
+      }
+      // A assinatura 2 é opcional, então não é obrigatório preenchê-la para gerar o PDF.
+      // --- FIM DA VALIDAÇÃO DOS CAMPOS ---
 
+      const orgao = document.getElementById('orgao').value;
       const preview = document.getElementById('preview');
       const dataObjeto = new Date(data + 'T00:00:00');
       const dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
