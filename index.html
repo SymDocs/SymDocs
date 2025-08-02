@@ -198,12 +198,12 @@
 
     <div class="assinaturas-group">
       <div>
-        <label for="assinatura1_nome">Assinatura 1</label>
+        <label for="assinatura1_nome">Assinatura</label>
         <input type="text" id="assinatura1_nome" placeholder="Nome">
         <input type="text" id="assinatura1_cargo" placeholder="Cargo">
       </div>
       <div>
-        <label for="assinatura2_nome">Assinatura 2</label>
+        <label for="assinatura2_nome">Ciente e de acordo (opcional)</label>
         <input type="text" id="assinatura2_nome" placeholder="Nome">
         <input type="text" id="assinatura2_cargo" placeholder="Cargo">
       </div>
@@ -289,7 +289,7 @@
         return;
       }
       if (!assinatura1_nome || !assinatura1_cargo) {
-        alert('Por favor, preencha os campos da Assinatura 1.');
+        alert('Por favor, preencha os campos de Assinatura.');
         return;
       }
       // A assinatura 2 é opcional, então não é obrigatório preenchê-la para gerar o PDF.
@@ -299,6 +299,21 @@
       const preview = document.getElementById('preview');
       const dataObjeto = new Date(data + 'T00:00:00');
       const dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
+
+      // HTML para a segunda assinatura, que será adicionado apenas se estiver preenchida
+      let assinatura2HTML = '';
+      if (assinatura2_nome && assinatura2_cargo) {
+        assinatura2HTML = `
+          <div style="text-align: center;">
+              <p style="margin: 0 0 40px 0; text-align: center;">Ciente e de Acordo:</p>
+              <div style="width: 300px; margin: auto;">
+                  <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
+                  <p style="margin: 0;">${assinatura2_nome}</p>
+                  <p style="margin: 0;">${assinatura2_cargo}</p>
+              </div>
+          </div>
+        `;
+      }
 
       preview.innerHTML = `
         <div style="font-family: Arial; font-size: 12px; padding: 20px; margin: auto;">
@@ -327,20 +342,14 @@
           <div style="margin-top: 50px;">
               <p style="margin: 0 0 40px 0; text-align: center;">Atenciosamente,</p>
               <div style="text-align: center; margin-bottom: 40px;">
+                  <p style="margin: 0 0 40px 0; text-align: center;">Assinatura</p>
                   <div style="width: 300px; margin: auto;">
                       <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
                       <p style="margin: 0;">${assinatura1_nome}</p>
                       <p style="margin: 0;">${assinatura1_cargo}</p>
                   </div>
               </div>
-              <p style="margin: 0 0 40px 0; text-align: center;">Ciente, De acordo:</p>
-              <div style="text-align: center;">
-                  <div style="width: 300px; margin: auto;">
-                      <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
-                      <p style="margin: 0;">${assinatura2_nome}</p>
-                      <p style="margin: 0;">${assinatura2_cargo}</p>
-                  </div>
-              </div>
+              ${assinatura2HTML}
           </div>
         </div>
       `;
