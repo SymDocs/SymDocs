@@ -300,6 +300,21 @@
       const dataObjeto = new Date(data + 'T00:00:00');
       const dataFormatada = dataObjeto.toLocaleDateString('pt-BR');
 
+      // HTML para a segunda assinatura, que será adicionado apenas se estiver preenchida
+      let assinatura2HTML = '';
+      if (assinatura2_nome && assinatura2_cargo) {
+        assinatura2HTML = `
+          <div style="text-align: center;">
+              <p style="margin: 0 0 40px 0; text-align: center;">Ciente e de Acordo:</p>
+              <div style="width: 300px; margin: auto;">
+                  <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
+                  <p style="margin: 0;">${assinatura2_nome}</p>
+                  <p style="margin: 0;">${assinatura2_cargo}</p>
+              </div>
+          </div>
+        `;
+      }
+
       preview.innerHTML = `
         <div style="font-family: Arial; font-size: 12px; padding: 20px; margin: auto;">
           <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px;">
@@ -327,20 +342,14 @@
           <div style="margin-top: 50px;">
               <p style="margin: 0 0 40px 0; text-align: center;">Atenciosamente,</p>
               <div style="text-align: center; margin-bottom: 40px;">
+                  <p style="margin: 0 0 40px 0; text-align: center;">Assinatura</p>
                   <div style="width: 300px; margin: auto;">
                       <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
                       <p style="margin: 0;">${assinatura1_nome}</p>
                       <p style="margin: 0;">${assinatura1_cargo}</p>
                   </div>
               </div>
-              <p style="margin: 0 0 40px 0; text-align: center;">Ciente, De acordo:</p>
-              <div style="text-align: center;">
-                  <div style="width: 300px; margin: auto;">
-                      <hr style="border: 0; height: 1px; background-color: #000; margin-bottom: 5px;">
-                      <p style="margin: 0;">${assinatura2_nome}</p>
-                      <p style="margin: 0;">${assinatura2_cargo}</p>
-                  </div>
-              </div>
+              ${assinatura2HTML}
           </div>
         </div>
       `;
