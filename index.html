@@ -93,6 +93,7 @@
     <div class="form-group">
       <label for="setor">Setor</label>
       <select id="setor">
+        <option value="" selected disabled hidden>Selecione...</option>
         <option value="SUPER(Superintendência)">SUPER(Superintendência)</option>
         <option value="CCAM*(COMISSÃO SETORIAL DE PREVENÇÃO E COMBATE AO ASSÉDIO MORAL)">CCAM*(COMISSÃO SETORIAL DE PREVENÇÃO E COMBATE AO ASSÉDIO MORAL)</option>
         <option value="CIPAD(CONTROLE INTERNO E PROCESSOS ADMINISTRATIVOS)">CIPAD(CONTROLE INTERNO E PROCESSOS ADMINISTRATIVOS)</option>
@@ -148,7 +149,7 @@
         <option value="COAIM*(Coordenação de Análise de Imagem)">COAIM*(Coordenação de Análise de Imagem)</option>
         <option value="COCAT*(Coordenação da Central de Atendimento)">COCAT*(Coordenação da Central de Atendimento)</option>
         <option value="NRJ(NÚCLEO DE RECURSO A JARI)">NRJ(NÚCLEO DE RECURSO A JARI)</option>
-        <option value="DIAFI(Diretoria Administrativo-Financeira)" selected>Diretoria Administrativo Financeira – DIAFI</option>
+        <option value="DIAFI(Diretoria Administrativo-Financeira)">Diretoria Administrativo Financeira – DIAFI</option>
         <option value="GEFIN(Gerência de Gestão Financeira)">GEFIN(Gerência de Gestão Financeira)</option>
         <option value="NUCON(Núcleo de Contabilidade)">NUCON(Núcleo de Contabilidade)</option>
         <option value="NUTES(Núcleo de Tesouraria)">NUTES(Núcleo de Tesouraria)</option>
@@ -238,7 +239,7 @@
 
     function limparFormulario() {
       document.getElementById('numero').value = '';
-      document.getElementById('setor').value = 'DIAFI(Diretoria Administrativo-Financeira)';
+      document.getElementById('setor').value = '';
       document.getElementById('destino').value = '';
       document.getElementById('data').value = '';
       document.getElementById('assunto').value = '';
