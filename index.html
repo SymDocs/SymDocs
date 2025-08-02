@@ -302,7 +302,7 @@
 
       // HTML para a segunda assinatura, que será adicionado apenas se estiver preenchida
       let assinatura2HTML = '';
-      if (assinatura2_nome && assinatura2_cargo) {
+      if (assinatura2_nome || assinatura2_cargo) {
         assinatura2HTML = `
           <div style="text-align: center;">
               <p style="margin: 0 0 40px 0; text-align: center;">Ciente e de Acordo:</p>
@@ -368,6 +368,7 @@
   </script>
 </body>
 </html>
+
 
 
 
